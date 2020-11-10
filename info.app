@@ -1,0 +1,19 @@
+null
+	write
+		terminal
+			Welcome to RavenOS
+		endwrite
+	readfile
+		sysinfo.data
+	readfile
+		sysversion.data
+	EOO
+-v
+	readfile
+		sysversion.data
+	EOO
+-i	
+	readfile
+		sysinfo.data
+	EOO
+EOF
