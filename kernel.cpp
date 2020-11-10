@@ -1,8 +1,6 @@
-
 #include <iostream>
 #include <fstream>
 #include <sstream>
-
 #include <string>
 #include <vector>
 using namespace std;
@@ -12,6 +10,8 @@ using namespace std;
 bool kernel_enabled = true;
 string kernel_name = "RavenOS";
 string kernel_version = "0.1.0";
+
+ifstream config("config.data");
 
 string user_name = "admin";
 
@@ -28,8 +28,19 @@ string stringSplitter(string str, int index){/*index from 0*/
 
 //false if error
 //true if everything is A-OK
-bool programParser(string program){
-	
+bool programParser(string program, string args){
+	ifstream launched(program);
+	sstream argsRaw(args);
+	string processedString;
+	string argsOption = 
+	while(launch >> processedString){
+		if(processedString == EOF){
+			return true;
+		}
+		if(argsOption == processedString){
+		
+		}
+	}
 }
 
 bool programLauncher(string app){
@@ -50,10 +61,16 @@ bool programLauncher(string app){
 }
 
 bool inputManager(string input){
-	if(input == null){
-	return true;
-	}else
-	if(input == 
+	while(1){
+		if(input == null){
+		return true;
+		}else
+		if(){
+		}else{
+		programParser(input);
+		return true;
+		}
+	}	
 }
 
 int main(){
