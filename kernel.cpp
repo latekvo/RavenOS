@@ -3,6 +3,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <cstdlib>
 using namespace std;
 
 //runtime variables
@@ -33,7 +34,7 @@ bool programParser(string program, string arg, string input){
 	ifstream launched(program);//opens stream to designated program
 	string processedWord;
 	string processedString; 
-
+	string program_input = null;
 	while(launched >> processedWord){
 		if(processedWord == EOF){
 			return true;
@@ -42,7 +43,11 @@ bool programParser(string program, string arg, string input){
 			while(1){//executes argument
 				launch >> processedWord;
 				if(processedWord == "EOA"){
-				return true;
+					return true;
+				}
+				if(processedWord == "input"){
+					cin >> program_input;
+					continue;
 				}
 				if(processedWord == "write"){
 					while(1){
@@ -59,37 +64,60 @@ bool programParser(string program, string arg, string input){
 					while(getline(program_openFile, processedString)){
 						cout << processedString << endl;
 					}
+					continue;
 				}
 			}
 		}
 	}
+	return false;
 }
-
-bool programLauncher(string app){
+//false if error
+//true if A-OK
+bool programLauncher(string app, string arg, string argOther){
 	ifstream appList("apps.data");
-	while(true){
-		while(1){
-			appExec << appList;
-			appNameCheck << appList;
-			if(appExec == "EOF" || appNameCheck == "EOF"){
-				return false;
-			}
-			if(app == appNameCheck){
-				programParser(appExec);
-				return true;
-			}
+	string appExec;
+	string appName;
+	while(1){
+		//APP FILE != APP NAME
+		appList << appExec;
+		appList << appName;
+		//appName will never be EOF but i check it for caution
+		if(appExec == "EOF" || appName == "EOF"){
+			return false;
+			//this app doesnt exist
+		}
+		if(app == appName){
+			programParser(appExec, arg, argOther);
+			return true;
+			//launch app by its filename
 		}
 	}
+
 }
 
 bool inputManager(string input){
+	//from here command is either 
+	//classified as system command
+	//or as app.
+	//---
+	//Here the string splitting magic happens
+	//And invalid inputs are dismissed
+	
+	//input is raw data
+	string command = null;//command is input after splitting
+	string arg = null;
+	string argOther = null;
+	
+	//MAKE THE SPLTTING HERE
+
 	while(1){
 		if(input == null){
 		return true;
-		}else
-		if(){
-		}else{
-		programParser(input);
+		}
+		if(command == "PLACEHOLDER"){//PLACEHOLDER
+		}
+		else{
+		programLauncher(command, arg, argOther);
 		return true;
 		}
 	}	
