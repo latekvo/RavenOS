@@ -28,17 +28,39 @@ string stringSplitter(string str, int index){/*index from 0*/
 
 //false if error
 //true if everything is A-OK
-bool programParser(string program, string args){
-	ifstream launched(program);
-	sstream argsRaw(args);
-	string processedString;
-	string argsOption = 
-	while(launch >> processedString){
-		if(processedString == EOF){
+//!!! CHANGE THIS TO SINGLE STRING INPUT FOR MORE FLEXABILITY
+bool programParser(string program, string arg, string input){
+	ifstream launched(program);//opens stream to designated program
+	string processedWord;
+	string processedString; 
+
+	while(launched >> processedWord){
+		if(processedWord == EOF){
 			return true;
 		}
-		if(argsOption == processedString){
-		
+		if(processedWord == arg){
+			while(1){//executes argument
+				launch >> processedWord;
+				if(processedWord == "EOA"){
+				return true;
+				}
+				if(processedWord == "write"){
+					while(1){
+						getline(launched, processedString);
+						if(processedString == "endwrite"){
+						break;
+						}
+					}
+					continue;//checks next word after 'endwrite'
+				}
+				if(processedWord == "readfile"){
+					launched >> processedWord;
+					ifstream program_openFile(processedWord);
+					while(getline(program_openFile, processedString)){
+						cout << processedString << endl;
+					}
+				}
+			}
 		}
 	}
 }
