@@ -1,4 +1,4 @@
-CAPL basics
+TAPL basics
 code is divided into sections,
 sections start with console argument,
 where "none" is reserved for blank argument,
@@ -23,9 +23,16 @@ Block closing operators
 
 EOA - closes argument
 EOF - closes file
+EOE - ends basic equasion
 endwrite - stops output session
 endfile - stops file involving session
 endif - closes if
+
+VARIABLES and how to use them
+var [type] [name] - creates variable with type
+escape
+	[var name] - keyword ESCAPE excludes one
+	line from read/write and reads it word by word
 
 IO commands
 
