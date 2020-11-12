@@ -4,6 +4,10 @@
 #include <string>
 #include <vector>
 #include <cstdlib>
+#include <bits/stdc++.h>//idk if needed, but its for stringstream
+
+#include "kernelHeader.h"
+
 using namespace std;
 
 //runtime variables
@@ -23,8 +27,21 @@ string null = "";
 bool launchSuccess = true;
 bool correctInput = true;
 
-string stringSplitter(string str, int index){/*index from 0*/
-	
+//a 16bit rendering of characters
+static UINT16 VFA_DefaultEntry(unsigned char ch_to_print){
+	//left shift converts color to character value pixel encoding
+	return (UINT16)ch_to_print | (UINT16)WHITE_COLOR << 8;
+}
+
+//will split strings and return word from zero
+string splitString(string str, int index){/*index from 0*/
+	stringstream stringSplitter_stream(str);
+	string spliced = null;
+	for(int i = 0; i <= index; i++){
+		stringSplitter_stream >> spliced;
+	}
+	stringSplitter_stream.clear();
+	return spliced;
 }
 
 //false if error
@@ -36,12 +53,12 @@ bool programParser(string program, string arg, string input){
 	string processedString; 
 	string program_input = null;
 	while(launched >> processedWord){
-		if(processedWord == EOF){
+		if(processedWord == "EOF"){
 			return true;
 		}
 		if(processedWord == arg){
 			while(1){//executes argument
-				launch >> processedWord;
+				launched >> processedWord;
 				if(processedWord == "EOA"){
 					return true;
 				}
@@ -54,6 +71,9 @@ bool programParser(string program, string arg, string input){
 						getline(launched, processedString);
 						if(processedString == "endwrite"){
 						break;
+						}
+						else{
+							cout << processedString << endl;
 						}
 					}
 					continue;//checks next word after 'endwrite'
@@ -79,8 +99,8 @@ bool programLauncher(string app, string arg, string argOther){
 	string appName;
 	while(1){
 		//APP FILE != APP NAME
-		appList << appExec;
-		appList << appName;
+		appList >> appExec;
+		appList >> appName;
 		//appName will never be EOF but i check it for caution
 		if(appExec == "EOF" || appName == "EOF"){
 			return false;
@@ -102,11 +122,10 @@ bool inputManager(string input){
 	//---
 	//Here the string splitting magic happens
 	//And invalid inputs are dismissed
-	
 	//input is raw data
-	string command = null;//command is input after splitting
-	string arg = null;
-	string argOther = null;
+	string command = splitString(input, 0);//command is input after splitting
+	string arg = splitString(input, 1);
+	string argOther = splitString(input, 2);
 	
 	//MAKE THE SPLTTING HERE
 
@@ -114,9 +133,7 @@ bool inputManager(string input){
 		if(input == null){
 		return true;
 		}
-		if(command == "PLACEHOLDER"){//PLACEHOLDER
-		}
-		else{
+		if(!(input == null)){
 		programLauncher(command, arg, argOther);
 		return true;
 		}
@@ -125,6 +142,9 @@ bool inputManager(string input){
 
 int main(){
 	
+	//terminal buffer pntr to vga casted to UINT16
+	TERMINAL_BUFFER = (UINT16*)VGA_ADDRESS;
+	//now VGA is easly avabile by array
 	bool system_nominal = true;
 	while(kernel_enabled == true && system_nominal == true){
 		cout << user_name << ">>";	
