@@ -4,7 +4,6 @@
 #include <string>
 #include <vector>
 #include <cstdlib>
-#include <bits/stdc++.h>//idk if needed, but its for stringstream
 
 #include "kernelHeader.h"
 
@@ -34,6 +33,16 @@ static UINT16 VFA_DefaultEntry(unsigned char ch_to_print){
 }
 
 //will split strings and return word from zero
+
+int countString(string str){
+	stringstream countString_stream(str);
+	int countString_finalCount = 0;
+	string counterFooString = null;
+	while(countString_stream >> counterFooString){
+		countString_finalCount++;
+	}
+	return countString_finalCount;
+}
 string splitString(string str, int index){/*index from 0*/
 	stringstream stringSplitter_stream(str);
 	string spliced = null;
@@ -51,20 +60,34 @@ string splitString(string str, int index){/*index from 0*/
 //!!!YESS, MOVE THIS HERE, IN-MANAGER WILL ONLY SPLIT FOR CD, LS, ETC...
 //!!!NOTE TO LAST NOTE, LAUNCHER CHECKS FOR VALID PROGRAM AND IN-MANAGER SPLITS...
 bool programParser(string program, string wholeString){
-	ifstream launched(program);//opens stream to designated program
 	//split 'zero' is ignored as its already avabile
 	int argAmount = countString(wholeString) - 2;//-1 as we count from zero and
        						     //-1 as last thing is input
 	//only one input is allowed for now, but unlimited amount of arguments
-	splitString(wholeString, 1);
-
+	string program_inputArgument = splitString(wholeString, argAmount + 1);
+	//adding back 'input' argument, as final amount of argAmount here is -1
+	string arg; // searched argument.
 	string processedWord;	//for single words
 	string processedString; //for strings
 	
 	string program_input; //seperated program input
-	//MAKE LOOP HERE FOR EACH ARG AND CHECKED ARG WILL CHANGE EACH ITERATION
-	//for(int i; i 
-	while(launched >> processedWord){
+		
+	int argIndex = 1; //0 is program name, updated every arg execution.	
+	
+	ifstream launched;//opens stream to designated program DOES THIS EVERY 
+
+	while(1){
+		cout << "entered TAPL file loop" << endl;///DEBUG///
+		if(launched.is_open()){
+			launched.close();
+		}
+		cout << "opened/reopened program file" << endl;///DEBUG///
+		launched.open(program);//opens stream to designated program DOES THIS EVERY 
+		cout << "passed opening/reopening of program file" << endl;///DEBUG///
+		
+		launched >> processedWord;
+				
+		arg = splitString(wholeString, argIndex);
 		if(processedWord == "EOF"){
 			return true;
 		}
@@ -74,27 +97,30 @@ bool programParser(string program, string wholeString){
 			//there wasnt argument befor 'close argument'
 		}
 		if(processedWord == "null"){
+			cout << "converted 'null' to NULL" << endl;///DEBUG///
 			processedWord == null;
 			//convert null argument to literal nothing
 		}
 		if(processedWord == arg){
+			argIndex++;
 			while(1){//executes argument
+				cout << "entered TAPL argument loop" << endl;///DEBUG///
 				launched >> processedWord;
 				//EO section
+				cout << "entered EO parser section" << endl;///DEBUG///
 				if(processedWord == "EOF"){
 					return false;
 				}
-				if(processedWord == "EOA"){
+				if(processedWord == "EOA" || processedWord == "EOE"){
 					return true;
 				}
 				//LOGIC section
 				if(processedWord == "var"){
 					launched >> processedWord;
-
 				}
 				//input, write, read, 
 				//write file, read file, open file.
-				
+				cout << "entered IO/FILE parser section" << endl;///DEBUG///
 				if(processedWord == "input"){
 					cin >> program_input;
 					continue;
@@ -122,8 +148,20 @@ bool programParser(string program, string wholeString){
 				}
 				if(processedWord == "writefile"){
 					launched >> processedWord;
-					ofstream(processedWord);
-					program_outputFile << processedWord << " ";
+					ofstream program_outputFile(processedWord);
+					while(1){
+						launched >> processedWord;
+						if(processedWord == "endfile"){
+						break;
+						}
+						program_outputFile << processedWord << " ";
+					}
+					continue;
+				}
+				else{
+					cout << "PROGRAM ERROR: INVALID COMMAND OR SYNTAX ERROR" << endl;
+					//syntax err
+					return false;
 				}
 			}
 		}
@@ -151,7 +189,6 @@ bool programLauncher(string app, string input){
 			//launch app by its filename
 		}
 	}
-
 }
 
 bool inputManager(string input){
@@ -165,22 +202,21 @@ bool inputManager(string input){
 	string command = splitString(input, 0);//command is input after splitting
 	string arg = splitString(input, 1);
 	string argOther = splitString(input, 2);
-	
-	//MAKE THE SPLTTING HERE
+	//this splitting is only for the rare systes commands
+	bool is_launchNominal;
 
 	while(1){
 		if(input == null){
 		return true;
 		}
 		if(!(input == null)){
-		programLauncher(command, input);
-		return true;
+		is_launchNominal = programLauncher(command, input);
+		return is_launchNominal;
 		}
 	}	
 }
 
 int main(){
-	
 	//terminal buffer pntr to vga casted to UINT16
 	TERMINAL_BUFFER = (UINT16*)VGA_ADDRESS;
 	//now VGA is easly avabile by array
