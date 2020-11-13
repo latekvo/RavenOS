@@ -20,7 +20,7 @@ ifstream config("config.data");
 
 string user_name = "admin";
 
-string command_search = "EOF";
+string command_search;
 string commandInput;
 string null = "";
 
@@ -44,24 +44,57 @@ string splitString(string str, int index){/*index from 0*/
 	return spliced;
 }
 
-//false if error
+//false if error: Unknown argument/code syntax error
 //true if everything is A-OK
 //!!! CHANGE THIS TO SINGLE STRING INPUT FOR MORE FLEXABILITY
-bool programParser(string program, string arg, string input){
+//! NOTE CHANGED INPUT MANAGER TO SINGLE INPUT BUT MAY NEED TO MOVE IT HERE
+//!!!YESS, MOVE THIS HERE, IN-MANAGER WILL ONLY SPLIT FOR CD, LS, ETC...
+//!!!NOTE TO LAST NOTE, LAUNCHER CHECKS FOR VALID PROGRAM AND IN-MANAGER SPLITS...
+bool programParser(string program, string wholeString){
 	ifstream launched(program);//opens stream to designated program
-	string processedWord;
-	string processedString; 
-	string program_input = null;
+	//split 'zero' is ignored as its already avabile
+	int argAmount = countString(wholeString) - 2;//-1 as we count from zero and
+       						     //-1 as last thing is input
+	//only one input is allowed for now, but unlimited amount of arguments
+	splitString(wholeString, 1);
+
+	string processedWord;	//for single words
+	string processedString; //for strings
+	
+	string program_input; //seperated program input
+	//MAKE LOOP HERE FOR EACH ARG AND CHECKED ARG WILL CHANGE EACH ITERATION
+	//for(int i; i 
 	while(launched >> processedWord){
 		if(processedWord == "EOF"){
 			return true;
 		}
+		if(processedWord == "EOA"){
+			return false;
+			//something is wrong, if this is accessible,
+			//there wasnt argument befor 'close argument'
+		}
+		if(processedWord == "null"){
+			processedWord == null;
+			//convert null argument to literal nothing
+		}
 		if(processedWord == arg){
 			while(1){//executes argument
 				launched >> processedWord;
+				//EO section
+				if(processedWord == "EOF"){
+					return false;
+				}
 				if(processedWord == "EOA"){
 					return true;
 				}
+				//LOGIC section
+				if(processedWord == "var"){
+					launched >> processedWord;
+
+				}
+				//input, write, read, 
+				//write file, read file, open file.
+				
 				if(processedWord == "input"){
 					cin >> program_input;
 					continue;
@@ -69,10 +102,11 @@ bool programParser(string program, string arg, string input){
 				if(processedWord == "write"){
 					while(1){
 						getline(launched, processedString);
+						//insert 'escape' here//
 						if(processedString == "endwrite"){
 						break;
 						}
-						else{
+						else{	//cout line
 							cout << processedString << endl;
 						}
 					}
@@ -86,14 +120,19 @@ bool programParser(string program, string arg, string input){
 					}
 					continue;
 				}
+				if(processedWord == "writefile"){
+					launched >> processedWord;
+					ofstream(processedWord);
+					program_outputFile << processedWord << " ";
+				}
 			}
 		}
 	}
 	return false;
 }
-//false if error
+//false if error: No such app listed
 //true if A-OK
-bool programLauncher(string app, string arg, string argOther){
+bool programLauncher(string app, string input){
 	ifstream appList("apps.data");
 	string appExec;
 	string appName;
@@ -107,7 +146,7 @@ bool programLauncher(string app, string arg, string argOther){
 			//this app doesnt exist
 		}
 		if(app == appName){
-			programParser(appExec, arg, argOther);
+			programParser(appExec, input);
 			return true;
 			//launch app by its filename
 		}
@@ -134,7 +173,7 @@ bool inputManager(string input){
 		return true;
 		}
 		if(!(input == null)){
-		programLauncher(command, arg, argOther);
+		programLauncher(command, input);
 		return true;
 		}
 	}	
