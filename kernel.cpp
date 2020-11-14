@@ -60,81 +60,57 @@ string splitString(string str, int index){/*index from 0*/
 //!!!YESS, MOVE THIS HERE, IN-MANAGER WILL ONLY SPLIT FOR CD, LS, ETC...
 //!!!NOTE TO LAST NOTE, LAUNCHER CHECKS FOR VALID PROGRAM AND IN-MANAGER SPLITS...
 bool programParser(string program, string wholeString){
-	//split 'zero' is ignored as its already avabile
-	int argAmount = countString(wholeString) - 2;//-1 as we count from zero and
-       						     //-1 as last thing is input
-	//only one input is allowed for now, but unlimited amount of arguments
+	cout << "Program: " << program << endl;///DEBUG///
+	cout << "Arguments: " << wholeString << endl;///DEBUG///
+
+	int argAmount = countString(wholeString) - 2;
 	string program_inputArgument = splitString(wholeString, argAmount + 1);
-	//adding back 'input' argument, as final amount of argAmount here is -1
+
 	string arg; // searched argument.
 	string processedWord;	//for single words
 	string processedString; //for strings
-	
+
+	bool program_isLaunched = true;
+	bool program_argumentCompleted = false;
+
 	string program_input; //seperated program input
 		
 	int argIndex = 1; //0 is program name, updated every arg execution.	
 	
 	ifstream launched;//opens stream to designated program DOES THIS EVERY 
 
-	while(1){
-		cout << "entered TAPL file loop" << endl;///DEBUG///
-		if(launched.is_open()){
-			launched.close();
-		}
-		cout << "opened/reopened program file" << endl;///DEBUG///
-		launched.open(program);//opens stream to designated program DOES THIS EVERY 
-		cout << "passed opening/reopening of program file" << endl;///DEBUG///
-		
+	while(program_isLaunched == true){
+
 		launched >> processedWord;
-				
+			
 		arg = splitString(wholeString, argIndex);
 		if(processedWord == "EOF"){
-			return true;
+			program_isLaunched = false;//end of file
 		}
-		if(processedWord == "EOA"){
-			return false;
-			//something is wrong, if this is accessible,
-			//there wasnt argument befor 'close argument'
-		}
-		if(processedWord == "null"){
-			cout << "converted 'null' to NULL" << endl;///DEBUG///
-			processedWord == null;
-			//convert null argument to literal nothing
-		}
-		if(processedWord == arg){
-			argIndex++;
-			while(1){//executes argument
-				cout << "entered TAPL argument loop" << endl;///DEBUG///
+		if(processedWord == arg || (processedWord == "none" && argAmount == 0)){
+			program_argumentCompleted = false;
+			while(program_argumentCompleted == false){//executes argument
+				
 				launched >> processedWord;
+				
 				//EO section
-				cout << "entered EO parser section" << endl;///DEBUG///
 				if(processedWord == "EOF"){
-					return false;
+					return true;//force close program
 				}
-				if(processedWord == "EOA" || processedWord == "EOE"){
-					return true;
+				if(processedWord == "EOA"){
+					program_argumentCompleted = true;
+					continue;
 				}
-				//LOGIC section
-				if(processedWord == "var"){
-					launched >> processedWord;
-				}
+
 				//input, write, read, 
 				//write file, read file, open file.
-				cout << "entered IO/FILE parser section" << endl;///DEBUG///
 				if(processedWord == "input"){
 					cin >> program_input;
 					continue;
 				}
 				if(processedWord == "write"){
-					while(1){
-						getline(launched, processedString);
-						//insert 'escape' here//
-						if(processedString == "endwrite"){
-						break;
-						}
-						else{	//cout line
-							cout << processedString << endl;
-						}
+					while(processedString != "endwrite"){
+						cout << processedString << endl;
 					}
 					continue;//checks next word after 'endwrite'
 				}
@@ -159,15 +135,16 @@ bool programParser(string program, string wholeString){
 					continue;
 				}
 				else{
-					cout << "PROGRAM ERROR: INVALID COMMAND OR SYNTAX ERROR" << endl;
-					//syntax err
-					return false;
+				cout << "PROGRAM ERROR: INVALID COMMAND OR SYNTAX ERROR" << endl;
+				continue;
+				//syntax err, decided to keep program running
 				}
-			}
+			}	
 		}
 	}
-	return false;
+	return true;
 }
+
 //false if error: No such app listed
 //true if A-OK
 bool programLauncher(string app, string input){
