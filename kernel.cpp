@@ -19,11 +19,7 @@ ifstream config("config.data");
 
 string user_name = "admin";
 
-string temp_string;
-double temp_num;
-string command_search;
-string commandInput;
-string null = "";
+string user_input = "";
 
 bool launchSuccess = true;
 bool correctInput = true;
@@ -40,10 +36,9 @@ int countString(string str){
 	cout << "entered countString() module" << endl;
 	stringstream countString_stream(str);
 	int countString_finalCount = 0;
-	string counterString = null;
+	string counterString = "";
 
-	while(countString_stream.rdbuf()->in_avail() != 0){
-		countString_stream >> counterString;
+	while(countString_stream >> counterString){	
 		countString_finalCount++;
 	}
 
@@ -55,12 +50,14 @@ string splitString(string str, int index){/*index from 0*/
 		return str;
 	}
 	stringstream splitString_stream(str);
-	string spliced = null;
+	string spliced = "";
 
 	for(int i = 0; i <= index && splitString_stream.rdbuf()->in_avail() != 0; i++){
 		splitString_stream >> spliced;
+		cout << "debug: splitString: spliced = " << spliced << endl;
 	}
 	splitString_stream.clear();
+	cout << "debug: splitString: output = " << spliced << endl;
 	return spliced;
 }
 
@@ -71,7 +68,7 @@ string splitString(string str, int index){/*index from 0*/
 //!!!YESS, MOVE THIS HERE, IN-MANAGER WILL ONLY SPLIT FOR CD, LS, ETC...
 //!!!NOTE TO LAST NOTE, LAUNCHER CHECKS FOR VALID PROGRAM AND IN-MANAGER SPLITS...
 bool programParser(string program, string wholeString){
-		
+	
 	cout << endl << "entered programParser module." << endl << endl;
 
 	cout << "Program: " << program << endl;///DEBUG///
@@ -79,72 +76,85 @@ bool programParser(string program, string wholeString){
 		
 	//counting args
 	int argAmount = countString(wholeString) - 1;//this includes input but not program name
-	int argAmountActual;//only -x arguments
+	int argAmountActual = 0;//only -x arguments
 	int argAmountInputs = argAmount;
 		
 	//cant just check last arg for input as it could be in centre
 		
-	for(int i; i < argAmount; i++){
-		temp_string = splitString(wholeString, i);
-		if(temp_string.size() != 0){
-			if(temp_string.at(0) == '-'){
+	for(int i = 0; i <= argAmount; i++){
+		string tempString = "";
+		cout << i << " .  " << argAmount << endl;
+		cout << "Will enter splitString" << endl;
+		tempString = splitString(wholeString, i);
+		cout << "debug: programParser: tempString = " << tempString << endl;
+		if(tempString.size() != 0){
+			if(tempString.at(0) == '-'){
 				argAmountActual++;
 			}
 		}
 	}
 	
-	cout << "countString(): " << countString(wholeString) << endl; /// debug ///
-	cout << "argAmountActual: " << argAmountActual << endl; /// debug ///
+	cout << "debug: programParser: argAmount = " << argAmount << endl; /// debug ///
+	cout << "debug: programParser: argAmountActual = " << argAmountActual << endl; /// debug ///
 
 	if(argAmount < argAmountActual){ // this should never happen //
-		cout << "RUNTIME ERROR: argAmount < argAmountActual" << endl; 
+		cout << "RUNTIME ERROR: argAmount < argAmountActual" << endl;
+		return false;	
 	}
 
 	//making arg list	
-	int argIndex;
+	int argIndex = 0;
 	string argList[argAmountActual];
 		
-	for(int i, j = 0; i < countString(wholeString); i++){
-		temp_string = splitString(wholeString, i);
-		if(temp_string.at(0) == '-'){
-			argList[j] = temp_string;
-			j++;
-			cout << "argOnList: " << argList[j]; /// debug ///
+	//cout << "debug: programParser: argIndex = " << argIndex << endl;
+	//cout << "debug: programParser: argAmountActual = " << argIndex << endl;
+	for(int i = 0, j = 0; i < argAmount + 1; i++){//giving back '1' for it to run if there is anything else than program name
+		cout << "debug: programParser: entered arg indexing." << endl; /// debug ///
+		string tempString = ""; 
+		tempString = splitString(wholeString, i);
+		if(tempString.size() != 0){
+			if(tempString.at(0) == '-'){
+				argList[j] = tempString;
+				j++;
+				cout << "debug: programParser: added arg '" << tempString << "' to list. " << endl; /// debug ///
+			}
 		}
+		cout << "debug: programParser: iterated arg indexing." << endl; /// debug ///
 	}
 	
-	cout << "passed arg indexing." << endl; /// debug ///
 
 	string program_inputArgument;
 
 	string arg; // searched argument.
 	string processedWord;	//for single words
 	string processedString; //for strings, just for clarity
-
+				
 	bool program_isLaunched = true;
 	bool program_argumentCompleted = false;
-
-	string program_input;
-	
-	ifstream launched;
-
+				
+	string program_input;	
+				
+	ifstream launched;	
+				
 	while(program_isLaunched == true && argIndex < argAmountActual){
-
+				
 		arg = argList[argIndex];
 
-		cout << "argument: " << arg << endl;
-
-		launched >> processedWord;
-		
-		while(!(processedWord == arg)){
-			launched >> processedWord;	
-		}
-		if(processedWord == arg){
-			while(1){
-				launched >> processedWord;
+		cout << "argument = " << arg << endl;
 				
-				cout << "|" << processedWord << endl;
-
+		launched >> processedWord;
+				
+		while(!(processedWord == arg)){
+			launched >> processedWord;
+			cout << "debug: programParser: parsed: processedWord = '" << processedWord << "'" << endl;
+			if(processedWord == ""){
+				return false;//invalid syntax or blank space
+			}	
+		}		
+		if(processedWord == arg){
+			while(launched >> processedWord){
+								
+				cout << "| " << processedWord << endl;
 				//EO section
 				if(processedWord == "EOF"){
 					return true;//force close program
@@ -154,7 +164,7 @@ bool programParser(string program, string wholeString){
 					arg = argList[argIndex];				
 					break;
 				}
-
+				
 				//input, write, read, 
 				//writefile, readfile, openfile.
 				if(processedWord == "input"){
@@ -162,7 +172,7 @@ bool programParser(string program, string wholeString){
 					continue;
 				}
 				if(processedWord == "write"){
-					processedString = null;//resets last changes to string
+					processedString = "";//resets last changes to string
 					while(processedString != "endwrite"){
 						getline(launched, processedString);
 						cout << processedString << endl;
@@ -188,9 +198,8 @@ bool programParser(string program, string wholeString){
 						program_outputFile << processedWord << " ";
 					}
 					continue;
-				}	
+				}
 			}
-			continue;
 		}
 	
 	}
@@ -246,10 +255,10 @@ bool inputManager(string input){
 	bool is_launchNominal;
 
 	while(1){
-		if(input == null){
+		if(input == ""){
 		return true;
 		}
-		if(!(input == null)){
+		if(!(input == "")){
 		is_launchNominal = programLauncher(command, input);
 		return is_launchNominal;
 		}
@@ -260,17 +269,12 @@ int main(){
 	//terminal buffer pntr to vga casted to UINT16
 	TERMINAL_BUFFER = (UINT16*)VGA_ADDRESS;
 	//now VGA is easly avabile by array
+	
 	bool system_nominal = true;
 	while(kernel_enabled == true && system_nominal == true){
-		cout << user_name << "/:>";	
-		getline(cin, commandInput);
-		inputManager(commandInput);
-		if(correctInput == false){
-			cout << "Unknown command" << endl;
-		}
-		if(launchSuccess == false){
-			cout << "Unknown command" << endl;
-		}
+		cout << user_name << "/:> ";	
+		getline(cin, user_input);
+		inputManager(user_input);
 	}
 }
 
