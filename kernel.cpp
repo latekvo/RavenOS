@@ -2,7 +2,8 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-#include <vector>
+#include <vector> 
+#include <deque>
 #include <cstdlib>
 
 #include "kernelHeader.h"
@@ -83,8 +84,6 @@ bool programParser(string program, string wholeString){
 		
 	for(int i = 0; i <= argAmount; i++){
 		string tempString = "";
-		cout << i << " .  " << argAmount << endl;
-		cout << "Will enter splitString" << endl;
 		tempString = splitString(wholeString, i);
 		cout << "debug: programParser: tempString = " << tempString << endl;
 		if(tempString.size() != 0){
@@ -132,74 +131,114 @@ bool programParser(string program, string wholeString){
 	bool program_isLaunched = true;
 	bool program_argumentCompleted = false;
 				
-	string program_input;	
+	deque<string> programInputs;	
 				
 	ifstream launched;	
 				
 	while(program_isLaunched == true && argIndex < argAmountActual){
-				
+		if(launched.is_open()){//temp, this may not exist
+			launched.close();
+		}			
+		launched.open(program);
 		arg = argList[argIndex];
 
 		cout << "argument = " << arg << endl;
 				
 		launched >> processedWord;
+		if(processedWord == ""){
+			cout << "Error occured while opening a program file" << endl;
+			return false;
+		}
+		cout << processedWord << endl;
 				
-		while(!(processedWord == arg)){
-			launched >> processedWord;
-			cout << "debug: programParser: parsed: processedWord = '" << processedWord << "'" << endl;
-			if(processedWord == ""){
-				return false;//invalid syntax or blank space
-			}	
-		}		
-		if(processedWord == arg){
-			while(launched >> processedWord){
-								
-				cout << "| " << processedWord << endl;
-				//EO section
-				if(processedWord == "EOF"){
-					return true;//force close program
-				}
-				if(processedWord == "EOA"){
-					argIndex++;
-					arg = argList[argIndex];				
-					break;
-				}
-				
-				//input, write, read, 
-				//writefile, readfile, openfile.
-				if(processedWord == "input"){
-					cin >> program_input;
-					continue;
-				}
-				if(processedWord == "write"){
-					processedString = "";//resets last changes to string
-					while(processedString != "endwrite"){
-						getline(launched, processedString);
-						cout << processedString << endl;
-					}
-					continue;
-				}
-				if(processedWord == "readfile"){
+		deque<string> programDeque;
+		int blankSpaces = 0; //Exception handling
+		while(1){//i have no idea what to put here, so '1' should work
+			if(processedWord == arg){
+				while(1){//worry not, this double-infinite loop is intentional, i could
+					//move 'else' part higher and exclude it from if, thus shortening
+					//the code, but it will be just as efficient as this 'if' is executed only once, 
+					////and i have better things to do, like writing this insanely long comment.
 					launched >> processedWord;
-					ifstream program_openFile(processedWord);
-					while(getline(program_openFile, processedString)){
-						cout << processedString << endl;
-					}
-					continue;
-				}
-				if(processedWord == "writefile"){
-					launched >> processedWord;
-					ofstream program_outputFile(processedWord);
-					while(1){
-						launched >> processedWord;
-						if(processedWord == "endfile"){
-						break;
+					programDeque.push_back(processedWord);		
+					cout << "debug: programParser: pushed back '" << processedWord << "'" << endl;
+					//later checks for special parameters, but still leaves most work
+					//for later massive loop. This one will only ease the pain of more
+					//important one.
+					if(processedWord == "write" || processedWord == "writefile"){
+						string tempString;
+						while(processedWord != "endwrite"){
+							getline(launched, tempString);
+							programDeque.push_back(tempString);
 						}
-						program_outputFile << processedWord << " ";
 					}
-					continue;
+					//just pushing to deque
+				}
+				break; //this will just go out of pseudo infinite loop
+			}else{
+				launched >> processedWord;
+				blankSpaces++;
+				if(blankSpaces == 6){
+					cout << "Timed out while parsing throught program.";
+					return false;
 				}
 			}
+			// !!! 'break;' from up there will end up here !!! //
+		}
+		while(programDeque.empty() == false){				
+			processedWord = programDeque.front();	
+			cout << "| " << processedWord << endl;
+			//EO section
+			if(processedWord == "EOF"){
+				return true;//force close program
+			}
+			if(processedWord == "EOA"){
+				argIndex++;
+				arg = argList[argIndex];				
+				break;
+			}
+			
+			//input, write, read, 
+			//writefile, readfile, openfile.
+			if(processedWord == "input"){
+				string tempString;
+				cin >> tempString;
+				programInputs.push_back(tempString);
+				continue;
+			}
+			if(processedWord == "write"){
+				string tempString = "";//resets last changes to string
+				while(tempString != "endwrite"){
+					tempString = programDeque.front();
+				    	programDeque.pop_front();
+					cout << tempString << endl;
+				}
+				continue;
+			}
+			if(processedWord == "readfile"){
+				string tempString;
+				processedWord = programDeque.front();
+				programDeque.pop_front();
+				ifstream program_openFile(processedWord);
+				while(getline(program_openFile, tempString)){
+					cout << tempString << endl;
+				}
+				continue;
+			}
+			if(processedWord == "writefile"){
+				processedWord = programDeque.front();
+				programDeque.pop_front();
+				ofstream program_outputFile(processedWord);
+				while(programDeque.empty()){
+					processedWord = programDeque.front();
+					programDeque.pop_front();
+					if(processedWord == "endfile"){
+					break;
+					}
+					program_outputFile << processedWord << " ";
+				}
+				continue;
+			}	
 		}
 	
 	}
