@@ -165,6 +165,10 @@ bool programParser(string program, string wholeString){
 					//later checks for special parameters, but still leaves most work
 					//for later massive loop. This one will only ease the pain of more
 					//important one.
+					if(processedWord == "EOA" || processedWord == "EOF"){
+						break;//right after this break, there is a second break
+					}
+					
 					if(processedWord == "write" || processedWord == "writefile"){
 						string tempString;
 						while(processedWord != "endwrite"){
@@ -179,7 +183,7 @@ bool programParser(string program, string wholeString){
 				launched >> processedWord;
 				blankSpaces++;
 				if(blankSpaces == 6){
-					cout << "Timed out while parsing throught program.";
+					cout << "Timed out while parsing throught program. " << endl;
 					return false;
 				}
 			}
