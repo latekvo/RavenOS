@@ -1,0 +1,4 @@
+-t
+	readfile test2.tapl
+EOA
+EOF
